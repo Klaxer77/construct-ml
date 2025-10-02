@@ -1,3 +1,7 @@
+# ML Construct (Система управления строительством)
+
+<img src="https://construct-prod.hb.ru-msk.vkcloud-storage.ru/construct.png" width="200">
+
 ## Требования к окружению
 
 На машине должны быть установлены:
