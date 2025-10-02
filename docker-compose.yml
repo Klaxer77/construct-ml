@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  ocr-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ocr-app
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - OPENAI_BASE_URL=http://195.209.214.154:8000/v1
+      - OPENAI_API_KEY=none
+      - PADDLEOCR_MODEL_DIR=/root/.paddleocr

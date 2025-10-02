@@ -1,0 +1,1 @@
+sudo docker run --gpus all -d   --name llm   -p 8000:8000   -v /home/ubuntu/.cache:/root/.cache   vllm/vllm-openai:v0.5.4   --model Qwen/Qwen2-7B-Instruct-AWQ   --quantization awq   --gpu-memory-utilization 1   --max-model-len 4096
