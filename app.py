@@ -2,7 +2,7 @@ import numpy as np
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
 from paddleocr import PaddleOCR
-from PIL import Image
+from PIL import Image, ExifTags
 import io
 import sys
 import json
@@ -28,7 +28,6 @@ app = FastAPI(
 
 ocr = PaddleOCR(
     use_doc_orientation_classify=False,
-    use_doc_unwarping=False,
     lang="ru"
 )
 
@@ -168,6 +167,26 @@ def group_texts(centers, coef=1.0):
         blocks.append(" ".join(block))
     return blocks
 
+def fix_orientation(img: Image.Image) -> Image.Image:
+    try:
+        exif = img._getexif()
+        if not exif:
+            return img
+        orientation = None
+        for tag, value in exif.items():
+            if ExifTags.TAGS.get(tag) == "Orientation":
+                orientation = value
+                break
+        if orientation == 3:
+            img = img.rotate(180, expand=True)
+        elif orientation == 6:
+            img = img.rotate(270, expand=True)
+        elif orientation == 8:
+            img = img.rotate(90, expand=True)
+    except Exception:
+        pass
+    return img
+
 def preprocess_ocr_text(rec_texts: list[str]) -> list[str]:
     """
     Подчищает OCR-текст перед передачей в LLM.
@@ -211,6 +230,7 @@ def preprocess_ocr_text(rec_texts: list[str]) -> list[str]:
 async def perform_ocr_with_llm(file: UploadFile = File(...)):
     contents = await file.read()
     image = Image.open(io.BytesIO(contents)).convert("RGB")
+    image = fix_orientation(image)
     result = await run_in_threadpool(ocr_pdf_paddle, image)
 
     if isinstance(result, list) and len(result) > 0:
